@@ -1,0 +1,21 @@
+node_modules
+build
+dist
+.cache
+
+# TypeScript
+*.tsbuildinfo
+
+# Tests
+test-results/
+.playwright-artifacts/
+.playwright-browsers/
+playwright-report/
+
+# Local caches
+.npm-cache/
+
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
