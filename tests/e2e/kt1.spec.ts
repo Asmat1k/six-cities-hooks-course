@@ -19,13 +19,16 @@ const CONTROL_WIDTHS: readonly number[] = [375, 768, 1440];
 const SCREENSHOT_DIR = 'test-results/screenshots';
 
 // Данные моков, ожидаемые на страницах (дублируются здесь осознанно:
-// e2e проверяет то, что реально видит пользователь).
+// e2e проверяет то, что реально видит пользователь). КТ2: город по умолчанию
+// теперь Paris (ТЗ, раздел 3.1), Amsterdam проверяется выбором вкладки.
 const OFFERS = [
   {id: '1', title: 'Beautiful & luxurious apartment at great location', price: '€120'},
   {id: '2', title: 'Wood and stone place', price: '€80'},
   {id: '3', title: 'Canal View Prinsengracht', price: '€132'},
   {id: '4', title: 'Nice, cozy, warm big bed apartment', price: '€180'},
 ];
+
+const PARIS_OFFER_COUNT = 4;
 
 const CITY_TABS = ['Paris', 'Cologne', 'Brussels', 'Amsterdam', 'Hamburg', 'Dusseldorf'];
 
@@ -43,7 +46,7 @@ interface ScreenPath {
 }
 
 const GUEST_SCREENS: readonly ScreenPath[] = [
-  {name: 'main', path: '/', title: 'Six Cities - Amsterdam'},
+  {name: 'main', path: '/', title: 'Six Cities - Paris'},
   {name: 'login', path: '/login', title: 'Six Cities - Login'},
   {name: 'offer', path: '/offer/1', title: 'Six Cities - Beautiful & luxurious apartment at great location'},
   {name: 'offer-2', path: '/offer/2', title: 'Six Cities - Wood and stone place'},
@@ -53,7 +56,7 @@ const GUEST_SCREENS: readonly ScreenPath[] = [
 ];
 
 const DEMO_SCREENS: readonly ScreenPath[] = [
-  {name: 'main', path: '/', title: 'Six Cities - Amsterdam'},
+  {name: 'main', path: '/', title: 'Six Cities - Paris'},
   {name: 'offer', path: '/offer/1', title: 'Six Cities - Beautiful & luxurious apartment at great location'},
   {name: 'favorites', path: '/favorites', title: 'Six Cities - Favorites (2)'},
 ];
@@ -122,18 +125,27 @@ test.describe('KT1 @guest', () => {
     mkdirSync(`${SCREENSHOT_DIR}/guest`, {recursive: true});
   });
 
-  test('main page: title, four cards, six city tabs, places count', async ({page}) => {
+  test('main page: Paris by default, tabs switch the city in Redux', async ({page}) => {
     await page.goto('/');
 
-    await expect(page).toHaveTitle('Six Cities - Amsterdam');
-    await expect(page.getByRole('heading', {name: '4 places to stay in Amsterdam'})).toBeVisible();
-    await expect(page.locator('.places-grid .place-card')).toHaveCount(4);
+    // КТ2: Paris по умолчанию, карточки Амстердама - после выбора вкладки.
+    await expect(page).toHaveTitle('Six Cities - Paris');
+    await expect(
+      page.getByRole('heading', {name: `${String(PARIS_OFFER_COUNT)} places to stay in Paris`}),
+    ).toBeVisible();
+    await expect(page.locator('.places-grid .place-card')).toHaveCount(PARIS_OFFER_COUNT);
 
     const tabs = page.locator('.cities__link');
     await expect(tabs).toHaveCount(6);
     for (const [index, cityName] of CITY_TABS.entries()) {
       await expect(tabs.nth(index)).toHaveText(cityName);
     }
+    await expect(page.locator('.cities__link--active')).toHaveText('Paris');
+
+    await page.getByRole('button', {name: 'Amsterdam'}).click();
+    await expect(page).toHaveTitle('Six Cities - Amsterdam');
+    await expect(page.getByRole('heading', {name: '4 places to stay in Amsterdam'})).toBeVisible();
+    await expect(page.locator('.places-grid .place-card')).toHaveCount(4);
     await expect(page.locator('.cities__link--active')).toHaveText('Amsterdam');
   });
 
@@ -152,6 +164,9 @@ test.describe('KT1 @guest', () => {
       window.__kt1NoReload = 1;
     });
 
+    // Амстердамские моки проверяем после выбора вкладки (Paris по умолчанию).
+    await page.getByRole('button', {name: 'Amsterdam'}).click();
+
     // Карточка -> страница предложения, без перезагрузки документа.
     await page.getByRole('link', {name: OFFERS[0].title}).click();
     await expect(page).toHaveURL('/offer/1');
@@ -159,10 +174,12 @@ test.describe('KT1 @guest', () => {
     await expect(page.getByRole('heading', {level: 1, name: OFFERS[0].title})).toBeVisible();
     expect(await page.evaluate(() => window.__kt1NoReload)).toBe(1);
 
-    // Логотип -> главная, тоже без перезагрузки.
+    // Логотип -> главная, тоже без перезагрузки. Город остаётся выбранным:
+    // это Redux-состояние SPA-сессии, перезагрузки не было.
     await page.getByRole('link', {name: 'Шесть городов - на главную'}).first().click();
     await expect(page).toHaveURL('/');
     await expect(page).toHaveTitle('Six Cities - Amsterdam');
+    await expect(page.getByRole('heading', {name: '4 places to stay in Amsterdam'})).toBeVisible();
     expect(await page.evaluate(() => window.__kt1NoReload)).toBe(1);
   });
 
@@ -355,7 +372,7 @@ test.describe('KT1 @guest', () => {
     await page.getByRole('link', {name: 'Back to main page'}).click();
 
     await expect(page).toHaveURL('/');
-    await expect(page).toHaveTitle('Six Cities - Amsterdam');
+    await expect(page).toHaveTitle('Six Cities - Paris');
   });
 
   test('every guest screen is adaptive from 320px with no overflow or broken images', async ({page}) => {
@@ -421,8 +438,8 @@ test.describe('KT1 @demo', () => {
     await page.goto('/login');
 
     await expect(page).toHaveURL('/');
-    await expect(page).toHaveTitle('Six Cities - Amsterdam');
-    await expect(page.getByRole('heading', {name: '4 places to stay in Amsterdam'})).toBeVisible();
+    await expect(page).toHaveTitle('Six Cities - Paris');
+    await expect(page.getByRole('heading', {name: `${String(PARIS_OFFER_COUNT)} places to stay in Paris`})).toBeVisible();
     await expect(page.getByRole('heading', {name: 'Sign in'})).toHaveCount(0);
   });
 
