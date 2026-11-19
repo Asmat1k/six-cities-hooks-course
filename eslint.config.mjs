@@ -1,46 +1,37 @@
 // ESLint 10, flat config. Состав конфигурации для КТ1:
 // - правила курса: пресет `eslint-config-htmlacademy/react-typescript` 11
 //   (typescript-eslint strict + @eslint-react + jsx-a11y академии + @stylistic);
-// - правила Next.js: официальный плагин `@next/eslint-plugin-next`;
 // - `react-hooks/exhaustive-deps` и правила React Compiler: flat-пресет
 //   `eslint-plugin-react-hooks` 7.
-// Каждый плагин регистрируется ровно один раз - пресеты не пересекаются:
-// у академии нет react-hooks, у Next-плагина только `@next/next`.
+// Next.js из проекта убран, его плагин здесь больше не участвует.
 import htmlacademy from 'eslint-config-htmlacademy/react-typescript';
-import next from '@next/eslint-plugin-next';
 import reactHooks from 'eslint-plugin-react-hooks';
 
 export default [
-  // Служебные каталоги не линтим: артефакты сборки, тестовые артефакты,
+  // Служебные каталоги не линтим: артефакты сборки Vite, тестовые артефакты,
   // скачанные бинарники Playwright, кэш npm и исходная вёрстка проекта
-  // задания (docs/markup). next-env.d.ts генерирует сам Next - его править
-  // нельзя (см. комментарий в файле), поэтому линтер его не читает.
+  // задания (docs/markup).
   {
     ignores: [
-      '.next/**',
-      'out/**',
+      'dist/**',
       'test-results/**',
       '.playwright-artifacts/**',
       '.playwright-browsers/**',
       '.npm-cache/**',
       'docs/**',
       'public/**',
-      'next-env.d.ts',
     ],
   },
 
   // Правила курса.
   ...htmlacademy,
 
-  // Правила Next.js.
-  next.configs.recommended,
-
   // Правила React Hooks и React Compiler (в т.ч. react-hooks/exhaustive-deps).
   reactHooks.configs.flat.recommended,
 
-  // Адаптация под Next.js App Router: имена файлов задаёт курс - компоненты
-  // строчными через дефис (PROJECT.md, раздел 11), поэтому для tsx оставляем
-  // KEBAB_CASE вместо PASCAL_CASE из пресета (page.tsx, offer-card.tsx).
+  // Имена файлов задаёт курс: компоненты и модули строчными через дефис
+  // (PROJECT.md, раздел 11), поэтому для tsx оставляем KEBAB_CASE вместо
+  // PASCAL_CASE из пресета (main-page.tsx, offer-card.tsx).
   {
     files: ['**/*.{jsx,tsx}'],
     rules: {
@@ -54,34 +45,22 @@ export default [
     },
   },
 
-  // Папки внутри src/app именует Next.js: динамический сегмент [id] - это
-  // синтаксис маршрута, а не «некебаб» имя. Разрешаем скобочные сегменты.
+  // Сегмент `@x` сущности user - служебное имя из методологии FSD
+  // (feature-sliced.design, «Public API for cross-imports»): это узкий
+  // публичный API сущности для сущности offer, а не «некебаб» имя папки
+  // бизнес-кода. Правило имён папок для него отключено точечно.
   {
-    files: ['src/app/**'],
+    files: ['src/entities/user/@x/**'],
     rules: {
-      'check-file/folder-naming-convention': [
-        'error',
-        {
-          '**/': 'NEXT_JS_APP_ROUTER_CASE',
-        },
-      ],
+      'check-file/folder-naming-convention': 'off',
     },
   },
 
-  // КТ1 переносит готовую вёрстку как есть, с обычными <img> для локальных
-  // картинок из public/img. Переход на next/image - решение будущих этапов,
-  // поэтому одноимённое правило Next отключено осознанно.
-  {
-    rules: {
-      '@next/next/no-img-element': 'off',
-    },
-  },
-
-  // Augmentация React.CSSProperties в src/types/react-css.d.ts добавляет
+  // Augmentация React.CSSProperties в src/shared/ui/react-css.d.ts добавляет
   // индекс-сигнатуру для CSS-переменных: в interface её нельзя заменить на
   // Record, а другой способ задать `--*-свойства` типу стилей отсутствует.
   {
-    files: ['src/types/**/*.d.ts'],
+    files: ['src/shared/ui/react-css.d.ts'],
     rules: {
       '@typescript-eslint/consistent-indexed-object-style': 'off',
     },

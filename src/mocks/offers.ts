@@ -1,10 +1,12 @@
-// Моки предложений для КТ1 (этапы 1-3). Настоящий сервер появится на
-// этапе 7 - пока карточки и страницы берут данные только отсюда.
+// Моки предложений для КТ1 (этапы 1-3). Каталог src/mocks/ требует ТЗ
+// (TASKS.md, этап 2); по решению ревью он остаётся единственным хранилищем
+// данных. Типы приходят через публичные API сущностей FSD, а сами моки
+// подключает только слой app и передаёт страницам через props.
 //
 // Одна исходная выборка обслуживает и краткие карточки, и страницы
 // предложений: название, цена, ID и рейтинг всегда совпадают.
 
-import type {City, Location, Offer, OfferPreview} from '@/types/domain';
+import type {City, Location, Offer, OfferPreview} from '@/entities/offer';
 
 const AMSTERDAM: City = {
   name: 'Amsterdam',
@@ -186,11 +188,6 @@ function toPreview(offer: MockOffer): OfferPreview {
 // Все предложения - для списка на главной.
 export function getOffers(): OfferPreview[] {
   return MOCK_OFFERS.map(toPreview);
-}
-
-// ID известных предложений - для generateStaticParams.
-export function getOfferIds(): string[] {
-  return MOCK_OFFERS.map((offer) => offer.id);
 }
 
 // Полное предложение по точному ID; неизвестный ID - undefined (маршрут 404).

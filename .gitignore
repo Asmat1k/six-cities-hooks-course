@@ -3,10 +3,6 @@ build
 dist
 .cache
 
-# Next.js
-.next/
-out/
-
 # TypeScript
 *.tsbuildinfo
 

@@ -5,12 +5,13 @@ import {defineConfig} from '@playwright/test';
 //   PLAYWRIGHT_BROWSERS_PATH="$PWD/.playwright-browsers" \
 //     npm exec -- playwright install chromium
 // Задаём путь в конфиге, чтобы `npm run test:e2e` работал без экспорта
-// переменной окружения руками.
-process.env.PLAYWRIGHT_BROWSERS_PATH ??= path.join(__dirname, '.playwright-browsers');
+// переменной окружения руками. Конфиг - ESM ("type": "module"), поэтому
+// вместо __dirname используем import.meta.dirname.
+process.env.PLAYWRIGHT_BROWSERS_PATH ??= path.join(import.meta.dirname, '.playwright-browsers');
 
-// Playwright проверяет уже запущенный production-сервер:
+// Playwright проверяет уже запущенный production-сервер Vite:
 //   npm run build
-//   npm run start -- --hostname 127.0.0.1 --port 3100
+//   npm run preview -- --host 127.0.0.1 --port 3100
 //   npm run test:e2e -- --grep @guest   (или @demo для demo-сборки)
 // Сервер НЕ поднимается конфигом автоматически.
 export default defineConfig({

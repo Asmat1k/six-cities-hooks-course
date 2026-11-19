@@ -1,7 +1,8 @@
 // Моки отзывов для страницы предложения (КТ1, этапы 1-3).
-// Настоящий GET /comments/{offerId} появится на этапе 7.
+// Настоящий GET /comments/{offerId} появится на этапе 7. Тип Review -
+// через публичный API сущности offer (FSD).
 
-import type {Review} from '@/types/domain';
+import type {Review} from '@/entities/offer';
 
 const REVIEWS_BY_OFFER_ID: Record<string, Review[]> = {
   '1': [
