@@ -7,24 +7,40 @@ import {Rating} from '@/shared/ui/rating/rating';
 // props; карточка переиспользуется на главной, в избранном и на странице
 // предложения. Вариант `row` - компактная карточка для избранного: кнопка
 // «Избранное» в ней, как в вёрстке, прямой потомок карточки, а не обёртки фото.
+//
+// Этап 4: главная передаёт onActiveChange - карточка сообщает свой id при
+// наведении И при фокусе с клавиатуры (PROJECT.md, 10.2: подсветка маркера
+// должна срабатывать и без мыши). isActive ставит класс --active: он
+// подсвечивает карточку и служит для карты (H5) оранжевым маркером.
 
 interface OfferCardProps {
   offer: OfferPreview;
   variant?: 'grid' | 'row';
+  isActive?: boolean;
+  onActiveChange?: (offerId: string | null) => void;
 }
 
 function capitalize(text: string): string {
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
-export function OfferCard({offer, variant = 'grid'}: OfferCardProps) {
+export function OfferCard({offer, variant = 'grid', isActive = false, onActiveChange}: OfferCardProps) {
   const isRow = variant === 'row';
-  const cardClassName = isRow ? 'place-card place-card--row' : 'place-card';
+  const baseCardClassName = isRow ? 'place-card place-card--row' : 'place-card';
+  const cardClassName = isActive ? `${baseCardClassName} place-card--active` : baseCardClassName;
   const bookmarkClassName = offer.isFavorite
     ? 'bookmark place-card__bookmark bookmark--active'
     : 'bookmark place-card__bookmark';
   const favoriteAction = offer.isFavorite ? 'Remove from favorites' : 'Add to favorites';
   const typeLabel = capitalize(offer.type);
+
+  const handleActivate = () => {
+    onActiveChange?.(offer.id);
+  };
+
+  const handleDeactivate = () => {
+    onActiveChange?.(null);
+  };
 
   // Закладка избранного в КТ1 не интерактивна: переключение появится в будущих
   // этапах. `disabled` сохраняет вид из вёрстки, но убирает кнопку из
@@ -48,7 +64,13 @@ export function OfferCard({offer, variant = 'grid'}: OfferCardProps) {
   ) : null;
 
   return (
-    <article className={cardClassName}>
+    <article
+      className={cardClassName}
+      onMouseEnter={handleActivate}
+      onMouseLeave={handleDeactivate}
+      onFocus={handleActivate}
+      onBlur={handleDeactivate}
+    >
       <div className="place-card__image-wrapper">
         <img
           className="place-card__image"

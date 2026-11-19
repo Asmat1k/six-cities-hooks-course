@@ -21,11 +21,13 @@
   display: none;
 }
 
+/* Этап 6: вкладка города - кнопка (клик меняет город в Redux) */
 .cities__link {
   display: inline-flex;
   align-items: center;
   min-height: var(--tap);
   padding: 0 18px;
+  border: 0;
   border-radius: 22px;
   background: var(--color-bg);
   font-weight: 600;
@@ -57,8 +59,20 @@
   min-width: 0;
 }
 
-.places-layout__map {
-  display: none;
+/* Карта и список монтируются только те, что видны (H12): на телефоне
+   показывается что-то одно, с планшета - оба. CSS высоту держит. */
+.places-layout__map .map {
+  min-height: 360px;
+}
+
+/* Граница телефона/планшета - та же константа, что в коде (H12):
+   {{PHONE_MAX_WIDTH}} и {{TABLET_MIN_WIDTH}} подставляются при сборке
+   из src/shared/lib/breakpoints.ts (vite.config.ts, cssBreakpointTokens). */
+@media (max-width: {{PHONE_MAX_WIDTH}}px) {
+  .places-layout__map .map {
+    height: calc(100vh - var(--header-height) - 180px);
+    min-height: 360px;
+  }
 }
 
 /* Переключатель «Список / Карта» - только на телефоне */
@@ -78,8 +92,9 @@
   flex: 1;
   display: grid;
   place-items: center;
-  min-height: 40px;
-  border-radius: 20px;
+  /* Интерактивная цель на телефоне - не меньше 44×44 (PROJECT.md, 10.2) */
+  min-height: var(--tap);
+  border-radius: 22px;
   font-weight: 600;
   cursor: pointer;
 }
@@ -93,31 +108,12 @@
   outline: 3px solid var(--color-primary);
 }
 
-/* Телефон: показывается либо список, либо карта.
-   В приложении невидимая часть не рендерится вовсе (useMediaQuery, H12),
-   в вёрстке переключение показано через CSS. */
-@media (max-width: 767px) {
-  .places-layout:has(#view-map:checked) .places-layout__list {
-    display: none;
-  }
-
-  .places-layout:has(#view-map:checked) .places-layout__map {
-    display: block;
-  }
-
-  .places-layout__map .map {
-    height: calc(100vh - var(--header-height) - 180px);
-    min-height: 360px;
-  }
-}
-
-@media (min-width: 768px) {
+/* Телефон: показывается либо список, либо карта. В приложении невидимая
+   часть НЕ монтируется вовсе (useMediaQuery, H12) - скрытая карта всё
+   равно грузила бы API и тайлы, поэтому CSS здесь ничего не прячет. */
+@media (min-width: {{TABLET_MIN_WIDTH}}px) {
   .view-switch {
     display: none;
-  }
-
-  .places-layout__map {
-    display: block;
   }
 
   .places-layout__map .map {
@@ -159,7 +155,7 @@
   line-height: 1.25;
 }
 
-@media (min-width: 768px) {
+@media (min-width: {{TABLET_MIN_WIDTH}}px) {
   .places__title {
     font-size: 26px;
   }
@@ -191,6 +187,31 @@
   transform: translateY(-50%);
   fill: none;
   stroke: var(--color-muted);
+  stroke-width: 2;
+}
+
+/* Кнопка очистки поиска (H1): отменяет отложенный поиск и стирает ?q */
+.search__clear {
+  display: inline-grid;
+  place-items: center;
+  width: var(--tap);
+  height: var(--tap);
+  border: 0;
+  border-radius: var(--radius-s);
+  background: transparent;
+  color: var(--color-muted);
+}
+
+.search__clear:hover {
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.search__clear svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
   stroke-width: 2;
 }
 
@@ -247,7 +268,7 @@
   display: block;
 }
 
-@media (min-width: 768px) {
+@media (min-width: {{TABLET_MIN_WIDTH}}px) {
   .sort__list {
     right: 0;
     left: auto;

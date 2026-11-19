@@ -2,3 +2,4 @@
 // компоненты только отсюда.
 export type {City, Location, Offer, OfferPreview, OfferType, Review} from './model/domain';
 export {OfferCard} from './ui/offer-card';
+export {OfferCardList} from './ui/offer-card-list';

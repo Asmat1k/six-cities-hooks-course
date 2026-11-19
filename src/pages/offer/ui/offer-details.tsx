@@ -1,16 +1,20 @@
 import {Link} from 'react-router';
 import type {Offer, OfferPreview, Review} from '@/entities/offer';
-import {OfferCard} from '@/entities/offer';
-import {MapScheme} from '@/shared/ui/map-scheme/map-scheme';
+import {OfferCardList} from '@/entities/offer';
+import {CityMap} from '@/shared/ui/city-map/city-map';
+import type {YandexMapPoint} from '@/shared/ui/city-map/city-map';
 import {Rating} from '@/shared/ui/rating/rating';
 import {capitalize, formatReviewDate, pluralize} from '../lib/format';
+import {ReviewForm} from './review-form';
 
-// Страница предложения по гостевому макету (markup/offer-not-logged.html):
-// галерея (до 6 фото), цена, детали, хозяин, отзывы, статичная схема карты
-// и соседние предложения. Форму отзыва НЕ подключаем - она появится на
-// этапе 4 (H8): гостю показываем приглашение войти, авторизованному - ничего.
+// Страница предложения по макету (markup/offer.html): галерея (до 6 фото),
+// цена, детали, хозяин, отзывы (не больше 10, новые сверху - порядок даёт
+// источник данных), форма отзыва для авторизованного (H8), карта с тремя
+// соседями и текущим предложением и карточки соседей. Наведение на карточки
+// здесь цвет маркера не меняет - по ТЗ подсветка только на главной.
 
 const GALLERY_MAX_IMAGES = 6;
+const REVIEWS_MAX_COUNT = 10;
 
 interface OfferDetailsProps {
   offer: Offer;
@@ -21,9 +25,19 @@ interface OfferDetailsProps {
 
 export function OfferDetails({offer, reviews, nearbyOffers, isAuthorized}: OfferDetailsProps) {
   const galleryImages = offer.images.slice(0, GALLERY_MAX_IMAGES);
+  const visibleReviews = reviews.slice(0, REVIEWS_MAX_COUNT);
   const descriptionParagraphs = offer.description.split('\n\n');
   const hostClassName = offer.host.isPro ? 'host host--pro' : 'host';
   const favoriteAction = offer.isFavorite ? 'Remove from favorites' : 'Add to favorites';
+
+  // Карта «неподалёку»: три соседних предложения синим и текущее - оранжевым.
+  const nearbyMapPoints: readonly YandexMapPoint[] = [
+    ...nearbyOffers.map((nearbyOffer) => ({
+      id: nearbyOffer.id,
+      location: nearbyOffer.location,
+    })),
+    {id: offer.id, location: offer.location},
+  ];
 
   return (
     <main className="page__main offer">
@@ -132,7 +146,7 @@ export function OfferDetails({offer, reviews, nearbyOffers, isAuthorized}: Offer
               Reviews · <span className="reviews__amount">{reviews.length}</span>
             </h2>
             <ul className="reviews__list">
-              {reviews.map((review) => (
+              {visibleReviews.map((review) => (
                 <li className="review" key={review.id}>
                   <img
                     className="review__avatar"
@@ -154,7 +168,11 @@ export function OfferDetails({offer, reviews, nearbyOffers, isAuthorized}: Offer
                 </li>
               ))}
             </ul>
-            {isAuthorized ? null : (
+            {isAuthorized ? (
+              // Ключ обязателен: при переходе к другому предложению форма
+              // монтируется заново и перечитывает чужой черновик (H6/H8).
+              <ReviewForm key={offer.id} offerId={offer.id} />
+            ) : (
               <p className="reviews__login">
                 <Link to="/login">Sign in</Link> to leave a review
               </p>
@@ -164,7 +182,7 @@ export function OfferDetails({offer, reviews, nearbyOffers, isAuthorized}: Offer
       </div>
 
       <section className="container offer__map" aria-label="Map of places nearby">
-        <MapScheme pinCount={nearbyOffers.length + 1} activeIndex={nearbyOffers.length} />
+        <CityMap city={offer.city} points={nearbyMapPoints} activePointId={offer.id} />
       </section>
 
       <section className="container near-places" aria-labelledby="near-title">
@@ -172,9 +190,7 @@ export function OfferDetails({offer, reviews, nearbyOffers, isAuthorized}: Offer
           Other places in the neighbourhood
         </h2>
         <div className="places-grid near-places__list">
-          {nearbyOffers.map((nearbyOffer) => (
-            <OfferCard key={nearbyOffer.id} offer={nearbyOffer} />
-          ))}
+          <OfferCardList offers={nearbyOffers} />
         </div>
       </section>
     </main>
