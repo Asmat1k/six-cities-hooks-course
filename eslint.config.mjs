@@ -14,6 +14,9 @@ export default [
   {
     ignores: [
       'dist/**',
+      // Отчёт vitest --coverage генерирует JS в корне (prettify.js и др.),
+      // типизированные правила падают на нём как на постороннем коде.
+      'coverage/**',
       'test-results/**',
       '.playwright-artifacts/**',
       '.playwright-browsers/**',
@@ -63,6 +66,18 @@ export default [
     files: ['src/shared/ui/react-css.d.ts'],
     rules: {
       '@typescript-eslint/consistent-indexed-object-style': 'off',
+    },
+  },
+
+  // Хук карты H5 работает с императивным внешним API: конструкторы приходят
+  // из объекта window.ymaps3 (тип `typeof import('@yandex/ymaps3-types')`),
+  // и правило no-unsafe-class-instance-assignment не связывает `new
+  // api.YMapMarker(...)` с классом из пакета типов - ложное срабатывание.
+  // Настоящую проверку типов делает tsc, здесь правило отключено точечно.
+  {
+    files: ['src/hooks/use-yandex-map/use-yandex-map.ts'],
+    rules: {
+      '@typescript-eslint/no-unsafe-class-instance-assignment': 'off',
     },
   },
 ];

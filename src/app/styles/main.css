@@ -466,46 +466,51 @@ ol {
   }
 }
 
-/* ---------- Карта (макет: в приложении здесь Яндекс Карты) ---------- */
+/* ---------- Карта (Яндекс Карты, этап 5) ---------- */
+/* Контейнер карты. Плоская подложка вместо декоративной SVG-карты из
+   вёрстки КТ1: реальную карту закрывает канвас API, а в состоянии «нет
+   ключа»/«ошибка» достаточно сообщения - растеризация фоновой SVG
+   (background: url(...map.svg) / cover) оказалась непозволительно
+   дорогой и тормозила главный поток. */
 .map {
   position: relative;
   min-height: 320px;
   border-radius: var(--radius-m);
   overflow: hidden;
-  background: var(--color-map-land) url("/img/map.svg") center / cover no-repeat;
+  background: var(--color-map-land);
 }
 
-.map__pin {
-  position: absolute;
-  width: 28px;
-  height: 38px;
-  transform: translate(-50%, -100%);
+/* Сообщение вместо карты: нет ключа или не загрузился скрипт API */
+.map__fallback {
+  display: grid;
+  place-items: center;
+  min-height: 200px;
+  margin: 0;
+  padding: 16px 20px;
+  color: var(--color-muted);
+  text-align: center;
+}
+
+/* Маркеры на настоящей карте: DOM-элементы, созданные хуком H5 */
+.marker {
   color: var(--color-primary);
 }
 
-.map__pin--active {
-  z-index: 1;
-  width: 34px;
-  height: 46px;
+.marker--active {
   color: var(--color-accent);
 }
 
-.map__pin svg {
-  width: 100%;
-  height: 100%;
+.marker svg {
+  display: block;
+  width: 28px;
+  height: 38px;
   fill: currentColor;
   filter: drop-shadow(0 2px 2px rgb(0 0 0 / 25%));
 }
 
-.map__note {
-  position: absolute;
-  right: 8px;
-  bottom: 8px;
-  padding: 2px 8px;
-  border-radius: 4px;
-  background: rgb(255 255 255 / 85%);
-  color: var(--color-muted);
-  font-size: 11px;
+.marker--active svg {
+  width: 34px;
+  height: 46px;
 }
 
 /* ---------- Отзывы и форма (используются на странице предложения) ---------- */
@@ -629,6 +634,83 @@ ol {
 /* Обводка ghost-кнопки в disabled - тоже серая */
 .button--ghost:disabled {
   box-shadow: inset 0 0 0 2px var(--color-star-empty);
+}
+
+/* ---------- Переходы View Transition (M3) ---------- */
+/* Смена города на главной и переход на предложение анимируются через
+   React <ViewTransition> + startTransition. Направление задаётся типами
+   city-forward / city-back и offer-forward / offer-back, которые код
+   проставляет через addTransitionType; здесь - зеркальные вход/выход.
+   Ввод в поиск - срочное обновление и никогда не попадает в переход. */
+
+::view-transition-old(.vt-city-exit-forward) {
+  animation: vt-slide-out-left 280ms cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+::view-transition-new(.vt-city-enter-forward) {
+  animation: vt-slide-in-right 280ms cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+::view-transition-old(.vt-city-exit-back) {
+  animation: vt-slide-out-right 280ms cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+::view-transition-new(.vt-city-enter-back) {
+  animation: vt-slide-in-left 280ms cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+::view-transition-old(.vt-route-exit-forward) {
+  animation: vt-slide-out-left 280ms cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+::view-transition-new(.vt-route-enter-forward) {
+  animation: vt-slide-in-right 280ms cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+::view-transition-old(.vt-route-exit-back) {
+  animation: vt-slide-out-right 280ms cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+::view-transition-new(.vt-route-enter-back) {
+  animation: vt-slide-in-left 280ms cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+@keyframes vt-slide-out-left {
+  to {
+    opacity: 0;
+    transform: translateX(-24px);
+  }
+}
+
+@keyframes vt-slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+}
+
+@keyframes vt-slide-out-right {
+  to {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+}
+
+@keyframes vt-slide-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-24px);
+  }
+}
+
+/* Пользователь просил меньше движения - не анимируем вовсе. */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-image-pair(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
 }
 
 /* ---------- Плашка «Нет соединения» ---------- */

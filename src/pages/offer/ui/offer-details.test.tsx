@@ -172,6 +172,36 @@ describe('OfferDetails', () => {
     expect(dates.at(-1)).toHaveTextContent('August 2018');
   });
 
+  it('shows at most 10 reviews while the heading keeps the total count', () => {
+    const manyReviews: Review[] = Array.from({length: 12}, (unused, index) =>
+      makeReview(`r${String(index)}`, `Guest ${String(index)}`, '2020-01-01', 5),
+    );
+
+    renderOfferDetails({reviews: manyReviews});
+
+    expect(screen.getByRole('heading', {name: 'Reviews · 12'})).toBeInTheDocument();
+    expect(screen.getAllByText(/^Review from Guest/)).toHaveLength(10);
+  });
+
+  it('shows the review form for the authorized user and the invite for the guest', () => {
+    const {rerender} = renderOfferDetails({isAuthorized: true});
+    expect(screen.getByRole('heading', {name: 'Your review'})).toBeInTheDocument();
+    expect(screen.queryByText('to leave a review')).not.toBeInTheDocument();
+
+    // rerender сохраняет wrapper с роутером - оборачивать вручную нельзя.
+    rerender(
+      <OfferDetails
+        offer={offer}
+        reviews={reviews}
+        nearbyOffers={nearbyOffers}
+        isAuthorized={false}
+      />,
+    );
+
+    expect(screen.queryByRole('heading', {name: 'Your review'})).not.toBeInTheDocument();
+    expect(screen.getByText('to leave a review')).toBeInTheDocument();
+  });
+
   it('shows goods, pro host with a star, and the guest sign-in invite', () => {
     const {container} = renderOfferDetails();
 

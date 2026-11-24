@@ -1,6 +1,6 @@
 // Спрайт SVG-символов из вёрстки (docs/markup). Рендерится один раз в layout
 // приложения; компоненты ссылаются на символы через <use href="#icon-...">.
-// Перенесены только используемые на страницах КТ1 иконки.
+// Перенесены только используемые на страницах иконки.
 
 export function Icons() {
   return (
@@ -16,6 +16,16 @@ export function Icons() {
       </symbol>
       <symbol id="icon-star" viewBox="0 0 24 24">
         <path d="m12 2.5 2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z" />
+      </symbol>
+      <symbol id="icon-search" viewBox="0 0 20 20">
+        <circle cx="8.5" cy="8.5" r="6" />
+        <path d="m13 13 5 5" strokeLinecap="round" />
+      </symbol>
+      <symbol id="icon-arrow" viewBox="0 0 12 12">
+        <path d="m2 4 4 4 4-4" strokeLinecap="round" strokeLinejoin="round" />
+      </symbol>
+      <symbol id="icon-close" viewBox="0 0 20 20">
+        <path d="m5 5 10 10M15 5 5 15" strokeLinecap="round" />
       </symbol>
     </svg>
   );

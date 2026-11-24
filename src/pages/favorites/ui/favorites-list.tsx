@@ -1,6 +1,6 @@
 import {Link} from 'react-router';
 import type {OfferPreview} from '@/entities/offer';
-import {OfferCard} from '@/entities/offer';
+import {OfferCardList} from '@/entities/offer';
 
 // Избранное из вёрстки (markup/favorites.html): список сгруппирован по
 // городам, карточка та же, что на главной, но в компактном варианте `row`.
@@ -56,9 +56,7 @@ export function FavoritesList({offers}: FavoritesListProps) {
                 </Link>
               </h2>
               <div className="favorites__places">
-                {group.offers.map((offer) => (
-                  <OfferCard key={offer.id} offer={offer} variant="row" />
-                ))}
+                <OfferCardList offers={group.offers} variant="row" />
               </div>
             </section>
           </li>
